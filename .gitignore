@@ -1,0 +1,6 @@
+.DS_Store
+*~
+.label-studio-admin-password
+.label-studio-api-token
+__pycache__/
+*.pyc

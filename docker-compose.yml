@@ -1,0 +1,30 @@
+# Label Studio, run directly against the stock image - no custom build or
+# Litestream needed here. On a local box the disk is already durable, so the
+# SQLite db just lives on the bind-mounted drive like everything else.
+services:
+  label-studio:
+    image: heartexlabs/label-studio:latest
+    container_name: label-studio
+    restart: unless-stopped
+    ports:
+      # Published on all host interfaces by default (Docker's normal behavior
+      # for "HOST:CONTAINER" - reachable from your LAN, not just localhost).
+      # To restrict it to this machine only, change this to
+      # "127.0.0.1:${LS_PORT:-6767}:8080" instead. The container-side 8080 is
+      # just what Label Studio listens on internally - leave that alone.
+      - "${LS_PORT:-6767}:8080"
+    environment:
+      LABEL_STUDIO_USERNAME: ${LS_ADMIN_EMAIL:-admin@example.com}
+      LABEL_STUDIO_PASSWORD: ${LS_ADMIN_PASSWORD:?admin password required - run via the Makefile}
+      LABEL_STUDIO_USER_TOKEN: ${LS_ADMIN_TOKEN:?admin token required - run via the Makefile}
+      LABEL_STUDIO_DISABLE_SIGNUP_WITHOUT_LINK: "true"
+      LABEL_STUDIO_BASE_DATA_DIR: /label-studio/data
+      LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED: "true"
+      LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT: /label-studio/files
+    volumes:
+      # LS_INTERNAL_DIR defaults to $DATA_ROOT/ls-internal but can point
+      # elsewhere - see the Makefile comment on LS_INTERNAL_DIR for why
+      # (vfat/exFAT/NTFS drives can't back this directory).
+      - ${LS_INTERNAL_DIR:?LS_INTERNAL_DIR required - run via the Makefile}:/label-studio/data
+      - ${DATA_ROOT:?DATA_ROOT required - run via the Makefile}/tasks:/label-studio/files/tasks
+      - ${DATA_ROOT}/annotations:/label-studio/files/annotations
